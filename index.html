@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Word Cards</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#76746d;--acc:#2f6fed;--ok:#1f9d55;--bad:#d64545;--bd:#e3e1da}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#17171a;--card:#222226;--ink:#f0efe9;--mut:#9a98a0;--acc:#6d9bff;--ok:#4cc38a;--bad:#ef7b7b;--bd:#35353b}}
+:root[data-theme=dark]{--bg:#17171a;--card:#222226;--ink:#f0efe9;--mut:#9a98a0;--acc:#6d9bff;--ok:#4cc38a;--bad:#ef7b7b;--bd:#35353b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mut);margin:0 0 18px;font-size:14px}
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+button,select,textarea{font:inherit;color:var(--ink)}
+.tab,.btn{border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:9px 14px;cursor:pointer}
+.tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;margin-bottom:12px}.row label{flex:1;font-size:13px;color:var(--mut)}
+select{width:100%;padding:9px;border-radius:10px;border:1px solid var(--bd);background:var(--card);margin-top:4px}
+textarea{width:100%;min-height:170px;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--card);resize:vertical}
+.hint{font-size:13px;color:var(--mut);margin:6px 0 12px}
+.msg{margin-top:10px;font-size:14px;color:var(--mut)}.msg.err{color:var(--bad)}
+.card{perspective:900px;height:260px;margin:14px 0;cursor:pointer}
+.in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--bd);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.back{transform:rotateY(180deg)}
+.big{font-size:34px;font-weight:600;word-break:break-word}.note{color:var(--mut);margin-top:8px}
+.bar{height:6px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.stat{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin:6px 0}
+.acts{display:flex;gap:10px}.acts .btn{flex:1;font-weight:600}
+.ok{color:var(--ok)}.no{color:var(--bad)}
+ul{list-style:none;padding:0;margin:14px 0 0}li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--bd);font-size:15px}
+li span:last-child{color:var(--mut);text-align:right}.sp{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:18px}
+.done{text-align:center;padding:40px 10px}
+</style></head><body><main>
+<h1>🗂️ Word Cards</h1>
+<p class="sub">Type your words, get translations, learn with flashcards.</p>
+<div class="tabs"><button class="tab on" id="tAdd">Add words</button><button class="tab" id="tStudy">Study</button></div>
+
+<section id="add">
+ <div class="row">
+  <label>I want to learn<select id="lf"></select></label>
+  <label>My language<select id="lb"></select></label>
+ </div>
+ <textarea id="ta" placeholder="One word per line, e.g.&#10;apple&#10;book&#10;to travel"></textarea>
+ <p class="hint">Words can be in either language. To use your own translation, write <b>word - translation</b>.</p>
+ <button class="btn pri" id="go">Translate &amp; add cards</button>
+ <div class="msg" id="msg"></div>
+ <div class="sp" style="margin-top:22px"><b id="cnt">My cards</b><button class="btn" id="clr">Clear all</button></div>
+ <ul id="list"></ul>
+</section>
+
+<section id="study" hidden>
+ <div class="bar"><i id="pb"></i></div>
+ <div class="stat"><span id="s1"></span><span id="s2"></span></div>
+ <div class="card" id="card"><div class="in">
+  <div class="face"><div class="big" id="fr"></div><div class="note" id="fn"></div></div>
+  <div class="face back"><div class="big" id="bk"></div></div>
+ </div></div>
+ <div class="acts" id="acts">
+  <button class="btn no" id="again">✗ Again</button>
+  <button class="btn" id="say">🔊</button>
+  <button class="btn ok" id="know">✓ Know it</button>
+ </div>
+ <div class="sp" style="margin-top:14px"><button class="btn" id="swap">⇄ Flip direction</button><button class="btn" id="shuf">🔀 Restart</button></div>
+ <div class="done" id="done" hidden><div class="big">🎉 All done!</div><p class="note">You learned every card in this round.</p><button class="btn pri" id="again2">Study again</button></div>
+</section>
+
+<script>
+const L={English:["en-US","English"],Russian:["ru-RU","Русский / Russian"],Japanese:["ja-JP","日本語 / Japanese"],Chinese:["zh-CN","中文 / Chinese"],French:["fr-FR","Français / French"],Spanish:["es-ES","Español / Spanish"],Italian:["it-IT","Italiano / Italian"]};
+const $=id=>document.getElementById(id);
+let S={lf:"English",lb:"Russian",cards:[],rev:false};
+try{const x=JSON.parse(localStorage.getItem("wc1")||"null");if(x)S=Object.assign(S,x)}catch(e){}
+const save=()=>{try{localStorage.setItem("wc1",JSON.stringify(S))}catch(e){}};
+for(const id of["lf","lb"])$(id).innerHTML=Object.entries(L).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join("");
+$("lf").value=S.lf;$("lb").value=S.lb;
+$("lf").onchange=()=>{S.lf=$("lf").value;save()};$("lb").onchange=()=>{S.lb=$("lb").value;save()};
+
+function show(t){$("add").hidden=t!=="add";$("study").hidden=t!=="study";$("tAdd").classList.toggle("on",t==="add");$("tStudy").classList.toggle("on",t==="study");if(t==="study")start()}
+$("tAdd").onclick=()=>show("add");$("tStudy").onclick=()=>show("study");
+
+function renderList(){
+ $("cnt").textContent="My cards ("+S.cards.length+")";
+ $("list").innerHTML="";
+ S.cards.forEach((c,i)=>{const li=document.createElement("li");
+  const a=document.createElement("span");a.textContent=c.f+(c.n?" · "+c.n:"");
+  const b=document.createElement("span");b.textContent=c.b+" ";
+  const x=document.createElement("button");x.className="x";x.textContent="×";x.title="Remove";
+  x.onclick=()=>{S.cards.splice(i,1);save();renderList()};b.appendChild(x);li.append(a,b);$("list").appendChild(li)});
+}
+renderList();
+let clrT;
+$("clr").onclick=()=>{
+ if(!S.cards.length)return;
+ if($("clr").dataset.sure){clearTimeout(clrT);delete $("clr").dataset.sure;$("clr").textContent="Clear all";S.cards=[];save();renderList();msg("All cards deleted.");return}
+ $("clr").dataset.sure="1";$("clr").textContent="Sure? Click again";
+ clrT=setTimeout(()=>{delete $("clr").dataset.sure;$("clr").textContent="Clear all"},3000);
+};
+
+function msg(t,e){$("msg").textContent=t;$("msg").className="msg"+(e?" err":"")}
+$("go").onclick=async()=>{
+ const lines=$("ta").value.split("\n").map(s=>s.trim()).filter(Boolean);
+ if(!lines.length)return msg("Please enter at least one word.",1);
+ if(S.lf===S.lb)return msg("Choose two different languages.",1);
+ const manual=[],auto=[];
+ lines.forEach(l=>{const m=l.split(/\s+[-=–]\s+|\t/);m.length>1?manual.push({f:m[0].trim(),b:m.slice(1).join(" ").trim(),n:""}):auto.push(l)});
+ let got=[];
+ if(auto.length){
+  $("go").disabled=true;msg("Translating…");
+  try{
+   if(typeof claude==="undefined")throw {code:"no_runtime"};
+   const sample=await claude.use("sample");
+   if(!sample)throw {code:"none"};
+   const prompt=`You build vocabulary flashcards. Language to learn (front): ${S.lf}. Learner's language (back): ${S.lb}. For each input word or phrase below (it may be written in either language), return the item with "f" = the word in ${S.lf}, "b" = its translation in ${S.lb}, "n" = pronunciation help only if ${S.lf} is Japanese (hiragana reading + romaji) or Chinese (pinyin with tone marks), otherwise "". Use the most common translation. Reply with ONLY a JSON array of objects {"f","b","n"} in the same order, no markdown, no extra text.\nInput:\n${auto.join("\n")}`;
+   let arr;
+   try{const r=await sample.json(prompt,{cache:false,modelTier:"quick"});arr=Array.isArray(r)?r:(r&&(r.items||r.cards))||[]}
+   catch(e1){
+    if(e1&&["not_granted","rate_limited","cancelled"].includes(e1.code))throw e1;
+    const t=(await sample(prompt,{cache:false,modelTier:"quick"})).text||"";
+    const m=t.match(/\[[\s\S]*\]/);arr=JSON.parse(m?m[0]:t);
+   }
+   got=arr.filter(x=>x&&x.f&&x.b).map(x=>({f:String(x.f),b:String(x.b),n:String(x.n||"")}));
+   if(!got.length)throw {code:"empty"};
+  }catch(e){
+   $("go").disabled=false;
+   const c=(e&&e.code)||"error";
+   const T={not_granted:"Translation needs your permission. Click the button again and choose Allow.",rate_limited:"Too many requests. Wait a few seconds and try again.",none:"Translation is not available in this view. Open the app inside claude.ai (not in a separate tab or copy).",no_runtime:"Translation is not available in this view. Open the app inside claude.ai (not in a separate tab or copy)."};
+   return msg((T[c]||"Translation failed, please try again.")+" [code: "+c+"] You can still use “word - translation”.",1);
+  }
+  $("go").disabled=false;
+ }
+ const add=[...got,...manual].map(c=>({...c,k:false}));
+ S.cards.push(...add);save();renderList();$("ta").value="";
+ msg(`Added ${add.length} card${add.length===1?"":"s"}. Open the Study tab to learn them!`);
+};
+
+let q=[],cur=null,total=0;
+function start(){q=S.cards.map((_,i)=>i).sort(()=>Math.random()-.5);total=q.length;next()}
+function next(){
+ const has=q.length>0;
+ $("card").hidden=$("acts").hidden=!has;$("done").hidden=has||total===0;
+ $("swap").hidden=$("shuf").hidden=total===0;
+ if(!total){$("s1").textContent="No cards yet — add some words first.";$("s2").textContent="";$("pb").style.width="0";return}
+ const learned=total-q.length;
+ $("pb").style.width=(learned/total*100)+"%";$("s1").textContent=`Learned ${learned} / ${total}`;$("s2").textContent=`${S.lf} → ${S.lb}`+(S.rev?" (reversed)":"");
+ if(!has)return;
+ cur=S.cards[q[0]];$("card").classList.remove("flip");
+ $("fr").textContent=S.rev?cur.b:cur.f;$("fn").textContent=S.rev?"":cur.n;$("bk").textContent=S.rev?cur.f+(cur.n?"  ("+cur.n+")":""):cur.b;
+}
+$("card").onclick=()=>$("card").classList.toggle("flip");
+$("know").onclick=()=>{q.shift();next()};
+$("again").onclick=()=>{q.push(q.shift());next()};
+$("say").onclick=()=>{try{if(!cur)return;const u=new SpeechSynthesisUtterance(S.rev?cur.b:cur.f);u.lang=L[S.rev?S.lb:S.lf][0];speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}};
+$("swap").onclick=()=>{S.rev=!S.rev;save();next()};
+$("shuf").onclick=start;$("again2").onclick=start;
+</script></main></body></html>
